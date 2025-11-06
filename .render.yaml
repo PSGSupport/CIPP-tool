@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: cipp-backend
+    env: python
+    plan: free
+    buildCommand: poetry install
+    startCommand: poetry run uvicorn app.main:app --host 0.0.0.0 --port 10000
+    rootDir: backend
+    envVars:
+      - key: c4bbb03f-407b-4ef4-ac8c-21645ac27d2c
+        value: -client-id
+      - key: 02be48e5-8619-40ce-8ba1-cd2babea7426
+        value: -client-secret
+      - key: 1f4f94a9-715c-4526-94cc-157d610e7087
+        value: -tenant-id
+      - key: 0nl6f.onmicrosoft.com
+        value: .onmicrosoft.com
+      - key: CIPP_ENVIRONMENT
+        value: Production
+      - key: CIPP_FRONTEND_URL
+        value: https://cipp-frontend.onrender.com
+
+  - type: web
+    name: cipp-frontend
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    rootDir: frontend
+    envVars:
+      - key: REACT_APP_API_BASE
+        value: https://cipp-backend.onrender.com
