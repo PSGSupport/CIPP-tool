@@ -1,32 +1,30 @@
+# CIPP Frontend Deployment for Render.com
+#
+# IMPORTANT: CIPP requires an Azure backend (CIPP-API) because it uses PowerShell Azure Functions.
+# This configuration deploys the frontend on Render, which proxies API requests to your Azure backend.
+#
+# Before deploying:
+# 1. Deploy CIPP-API to Azure first (see: https://docs.cipp.app/setup/self-hosting-guide/install)
+# 2. Set CIPP_API_URL to your Azure Functions URL (e.g., https://your-cipp-api.azurewebsites.net)
+#
+# For full setup instructions, see: https://docs.cipp.app
+
 services:
   - type: web
-    name: cipp-backend
-    env: python
-    plan: free
-    buildCommand: poetry install
-    startCommand: poetry run uvicorn app.main:app --host 0.0.0.0 --port 10000
-    rootDir: backend
-    envVars:
-      - key: c4bbb03f-407b-4ef4-ac8c-21645ac27d2c
-        value: -client-id
-      - key: 02be48e5-8619-40ce-8ba1-cd2babea7426
-        value: -client-secret
-      - key: 1f4f94a9-715c-4526-94cc-157d610e7087
-        value: -tenant-id
-      - key: 0nl6f.onmicrosoft.com
-        value: .onmicrosoft.com
-      - key: CIPP_ENVIRONMENT
-        value: Production
-      - key: CIPP_FRONTEND_URL
-        value: https://cipp-frontend.onrender.com
-
-  - type: web
     name: cipp-frontend
-    env: node
+    runtime: node
     plan: free
-    buildCommand: npm install && npm run build
-    startCommand: npm start
-    rootDir: frontend
+    # Custom build - don't use 'npm run build' as it deletes package.json (designed for Azure SWA)
+    buildCommand: npm install && npx next build
+    startCommand: npx next start
     envVars:
-      - key: REACT_APP_API_BASE
-        value: https://cipp-backend.onrender.com
+      # REQUIRED: Your Azure CIPP-API Functions URL
+      # Example: https://cipp-api-xxxxx.azurewebsites.net
+      - key: CIPP_API_URL
+        sync: false
+      # Render sets this automatically - used to detect Render environment
+      - key: RENDER
+        value: "true"
+      # Node environment
+      - key: NODE_ENV
+        value: production
